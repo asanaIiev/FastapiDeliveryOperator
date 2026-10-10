@@ -3,6 +3,7 @@ alembic==1.20.0
 annotated-doc==0.0.5
 annotated-types==0.8.0
 anyio==4.15.1
+bcrypt==4.0.1
 click==8.5.0
 dnspython==2.8.0
 ecdsa==0.19.2
@@ -11,6 +12,7 @@ fastapi==0.141.1
 greenlet==3.5.5
 h11==0.16.0
 idna==3.19
+itsdangerous==2.2.0
 Jinja2==3.1.6
 Mako==1.4.1
 MarkupSafe==3.0.3

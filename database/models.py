@@ -10,13 +10,13 @@ class UserProfile(Base):
 
     id: Mapped[int] = mapped_column(autoincrement=True, primary_key=True)
     username: Mapped[str] = mapped_column(String(30), unique=True, nullable=False)
-    email: Mapped[str] = mapped_column(unique=True, nullable=True)
-    phone: Mapped[int] = mapped_column(unique=True, nullable=True)
+    email: Mapped[str | None] = mapped_column(unique=True, nullable=True)
+    phone: Mapped[int | None] = mapped_column(unique=True, nullable=True)
     password: Mapped[str] = mapped_column(String(100), nullable=False)
     registered_date: Mapped[date] = mapped_column(Date, default=date.today)
 
-    user_refresh: Mapped['UserRefresh'] = relationship(back_populates='refresh_user',
-                                                       cascade='all, delete-orphan')
+    user_refresh: Mapped[List['UserRefresh']] = relationship(back_populates='refresh_user',
+                                                             cascade='all, delete-orphan')
     user_store: Mapped[List['Store']] = relationship(back_populates='store_user',
                                                      cascade='all, delete-orphan')
     user_order: Mapped[List['Order']] = relationship(back_populates='order_user',
@@ -49,9 +49,11 @@ class Store(Base):
 
     id: Mapped[int] = mapped_column(autoincrement=True, primary_key=True)
     name: Mapped[str] = mapped_column(String(32), nullable=False)
-    category: Mapped[CategoryChoices] = mapped_column(Enum(CategoryChoices), default='Custom', nullable=True)
-    description: Mapped[str] = mapped_column(Text, nullable=True)
-    image: Mapped[str] = mapped_column(nullable=True)
+    category: Mapped[CategoryChoices | None] = mapped_column(
+        Enum(CategoryChoices), default=CategoryChoices.CUSTOM, nullable=True
+    )
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    image: Mapped[str | None] = mapped_column(nullable=True)
     owner: Mapped[int] = mapped_column(ForeignKey('user_profile.id', ondelete='CASCADE'), nullable=False)
     created_date: Mapped[date] = mapped_column(Date, default=date.today)
 
@@ -90,7 +92,9 @@ class Order(Base):
     id: Mapped[int] = mapped_column(autoincrement=True, primary_key=True)
     product: Mapped[int] = mapped_column(ForeignKey('product.id', ondelete='CASCADE'), nullable=False)
     user: Mapped[int] = mapped_column(ForeignKey('user_profile.id', ondelete='CASCADE'), nullable=False)
-    status: Mapped[StatusChoices] = mapped_column(Enum(StatusChoices), default='Pending', nullable=True)
+    status: Mapped[StatusChoices | None] = mapped_column(
+        Enum(StatusChoices), default=StatusChoices.PENDING, nullable=True
+    )
     ordered_date: Mapped[datetime] = mapped_column(DateTime, default=datetime.today)
 
     order_product: Mapped[Product] = relationship(back_populates='product_order')

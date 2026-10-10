@@ -4,7 +4,11 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from database.connection import get_db
 from database.models import Product, Store, UserProfile
-from database.schemes import *
+from database.schemes import (
+    ProductCreateScheme,
+    ProductResponseScheme,
+    ProductUpdateScheme,
+)
 from .profile import get_current_user
 
 router = APIRouter(prefix='/product', tags=['Product'])

@@ -14,29 +14,29 @@ async def get_list(db: AsyncSession = Depends(get_db)):
     stmt = await db.execute(select(Store))
     return stmt.scalars().all()
 
-@router.get('/{id_}/', response_model=StoreResponseScheme, tags=['Store'])
-async def get(id_: int, db: AsyncSession = Depends(get_db)):
-    stmt = await db.execute(select(Store).where(Store.id==id_))
-    scalar = stmt.scalar_one_or_none()
-    return scalar
-
-@router.get('/', response_model=StoreResponseScheme, tags=['Store'])
+@router.get('/my/', response_model=List[StoreResponseScheme], tags=['Store'])
 async def get_your_list(
     current_user: UserProfile = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    stmt = await db.execute(select(Store).where(Store.owner==current_user))
-    scalars = stmt.scalars().all()
-    return scalars
+    stmt = await db.execute(select(Store).where(Store.owner == current_user.id))
+    return stmt.scalars().all()
 
-
+@router.get('/{id_}/', response_model=StoreResponseScheme, tags=['Store'])
+async def get(id_: int, db: AsyncSession = Depends(get_db)):
+    stmt = await db.execute(select(Store).where(Store.id==id_))
+    scalar = stmt.scalar_one_or_none()
+    if scalar is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Specified store does not exist')
+    return scalar
 
 @router.post('/', response_model=StoreResponseScheme, tags=['Store'])
 async def post(
     scheme: StoreCreateScheme,
+    current_user: UserProfile = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    store = Store(**scheme.model_dump())
+    store = Store(**scheme.model_dump(), owner=current_user.id)
 
     db.add(store)
     await db.commit()
@@ -51,12 +51,17 @@ async def put(
     db: AsyncSession = Depends(get_db)
 ):
     stmt = await db.execute(select(Store).where(Store.id==id_,
-                                                Store.owner==current_user))
+                                                Store.owner==current_user.id))
     scalar = stmt.scalar_one_or_none()
     if not scalar:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Specified store does not exist')
 
     update_data = scheme.model_dump(exclude_unset=True)
+    if update_data.get('name') is None and 'name' in update_data:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail='Store name cannot be null',
+        )
 
     for key, value in update_data.items():
         setattr(scalar, key, value)
@@ -72,7 +77,7 @@ async def delete(
     db: AsyncSession = Depends(get_db)
 ):
     stmt = await db.execute(select(Store).where(Store.id==id_,
-                                                Store.owner==current_user))
+                                                Store.owner==current_user.id))
     scalar = stmt.scalar_one_or_none()
     if not scalar:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Specified store does not exist')

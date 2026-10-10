@@ -1,14 +1,15 @@
 from sqladmin import ModelView, Admin
-from database.models import *
+from database.models import Order, Product, Store, UserProfile, UserRefresh
 
 class UserAdmin(ModelView, model=UserProfile):
-    column_list = [i.key for i in UserProfile.__mapper__.columns]
+    column_list = [column.key for column in UserProfile.__mapper__.columns if column.key != 'password']
+    column_details_list = column_list
+    form_excluded_columns = ['password']
 
 class UserRefreshAdmin(ModelView, model=UserRefresh):
-    column_list = []
-
-    for i in UserRefresh.__mapper__.columns:
-        column_list.append(i.key)
+    column_list = ['id', 'user_id']
+    column_details_list = column_list
+    form_excluded_columns = ['token']
 
 class OrderAdmin(ModelView, model=Order):
     column_list = [i.key for i in Order.__mapper__.columns]
